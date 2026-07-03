@@ -58,7 +58,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"goland": {
 			Command: "C:\\Program Files\\JetBrains\\GoLand 2025.2.2\\bin\\goland64.exe",
 			Args:    []string{},
-			Always:  false,
+			Always:  true,
 		},
 		"webstorm": {
 			Command: "C:\\Program Files\\JetBrains\\WebStorm 2025.2.2\\bin\\webstorm64.exe",
@@ -83,7 +83,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"apipost": {
 			Command: "powershell",
 			Args:    []string{"-Command", "Start-Process 'C:\\Users\\Administrator\\AppData\\Local\\Programs\\Apipost\\Apipost.exe'"},
-			Always:  true,
+			Always:  false,
 		},
 		"yuque": {
 			Command: "powershell",
@@ -170,7 +170,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"arm": {
 			Command: "open",
 			Args:    []string{"-a", "Another Desktop Manager"},
-			Always:  true,
+			Always:  false,
 		},
 		"kiro": {
 			Command: "open",
@@ -180,7 +180,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"apipost": {
 			Command: "open",
 			Args:    []string{"-a", "Apipost"},
-			Always:  true,
+			Always:  false,
 		},
 		"yuque": {
 			Command: "open",
@@ -200,7 +200,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"docker": {
 			Command: "open",
 			Args:    []string{"-a", "Docker"},
-			Always:  true,
+			Always:  false,
 		},
 		"draw.io": {
 			Command: "open",
