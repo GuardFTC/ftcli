@@ -112,21 +112,21 @@ var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 			//	"docker",
 			//	"start", "redis-dev",
 			//},
-			"chroma": {
-				"docker",
-				"start", "chroma-server",
-			},
-			"ftcli": {
-				"background",
-				"/Applications/project/java/logs/ftcli-ai-server.log",
-				"6680",
-				"java", "ftcli",
-				"java",
-				"-Dfile.encoding=UTF-8",
-				"-Dstdout.encoding=UTF-8",
-				"-Dstderr.encoding=UTF-8",
-				"-jar", "/Applications/project/java/ftcli-ai-server/target/ftcli-ai-server-0.0.1-SNAPSHOT.jar",
-			},
+			//"chroma": {
+			//	"docker",
+			//	"start", "chroma-server",
+			//},
+			//"ftcli": {
+			//	"background",
+			//	"/Applications/project/java/logs/ftcli-ai-server.log",
+			//	"6680",
+			//	"java", "ftcli",
+			//	"java",
+			//	"-Dfile.encoding=UTF-8",
+			//	"-Dstdout.encoding=UTF-8",
+			//	"-Dstderr.encoding=UTF-8",
+			//	"-jar", "/Applications/project/java/ftcli-ai-server/target/ftcli-ai-server-0.0.1-SNAPSHOT.jar",
+			//},
 		},
 		"dolp": {
 			"zookeeper": {
