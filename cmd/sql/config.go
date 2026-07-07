@@ -210,6 +210,7 @@ var tableColumnMap = map[string][]string{
 		"avg_ARPU_total_fangcha", "avg_ARPU_iap_fangcha", "avg_ARPPU_iap_fangcha",
 		"iap_id", "CVR", "iap_rev_ratio", "avg_PUR",
 		"CVR_fangcha", "iap_rev_ratio_fangcha", "avg_PUR_fangcha",
+		"reten_active", "reten_active_fangcha", "reten_online_time", "reten_online_time_fangcha", "reten_level_num", "reten_level_num_fangcha", "reten_inter_num", "reten_inter_num_fangcha", "reten_reward_num", "reten_reward_num_fangcha",
 	},
 	"dws_user_energy_d_i": {
 		"device_id", "create_dt", "living_days", "tag_type", "tag_value", "campaign", "media_source", "platform", "country_code",
