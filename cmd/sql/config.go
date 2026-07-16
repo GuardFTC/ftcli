@@ -1,7 +1,20 @@
 // Package sql @Author:冯铁城 [17615007230@163.com] 2025-10-31 19:47:32
 package sql
 
-var defaultPath = "C:\\Users\\Administrator\\Downloads\\"
+import "runtime"
+
+// 定义系统常量
+const windows = "windows"
+const mac = "darwin"
+
+// 系统名称
+var system = runtime.GOOS
+
+// 默认CSV文件路径
+var defaultPath = map[string]string{
+	windows: "C:\\Users\\Administrator\\Downloads\\",
+	mac:     "/Users/m/Downloads/",
+}
 
 // 默认输出文件路径
 var defaultOutput = "output.sql"
@@ -270,5 +283,12 @@ var tableColumnMap = map[string][]string{
 		"game_id", "data_type", "day_time", "platform", "country", "media_source", "campaign", "create_version_code", "nu",
 		"pay_user_0", "pay_user_1", "pay_user_2", "pay_user_3", "pay_user_4", "pay_user_5", "pay_user_6", "pay_user_7",
 		"pay_alluser_0", "pay_alluser_1", "pay_alluser_2", "pay_alluser_3", "pay_alluser_4", "pay_alluser_5", "pay_alluser_6", "pay_alluser_7",
+	},
+	"ads_bi_nua_monitor_d_i": {
+		"game_id", "day_time", "platform", "country_code", "media_source", "campaign", "nu",
+		"unactive_nu", "ua1", "ua3", "ua5", "lost_nu", "online_time", "level_win_num", "level_num",
+		"lost_level_unenter", "lost_level_1_3", "lost_level_4_5", "lost_level_6_20", "lost_ad_6_20",
+		"lost_inter_6_20", "lost_reward_6_20", "ecpm_low", "ecpm_medium", "ecpm_high", "ecpm_null",
+		"ecpm_higher",
 	},
 }

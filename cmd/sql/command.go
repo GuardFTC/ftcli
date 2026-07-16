@@ -133,12 +133,12 @@ func getReader() (error, *csv.Reader, *os.File) {
 		return errors.New("请指定CSV文件"), nil, nil
 	}
 	if path == "" {
-		path = defaultPath
+		path = defaultPath[system]
 	}
 
 	//2.打开 CSV 文件
-	fmt.Printf("CSV文件路径: %s\n", defaultPath+csvFile)
-	file, err := os.Open(defaultPath + csvFile)
+	fmt.Printf("CSV文件路径: %s\n", defaultPath[system]+csvFile)
+	file, err := os.Open(defaultPath[system] + csvFile)
 	if err != nil {
 		fmt.Printf("打开 CSV 文件失败:%s", err)
 		return err, nil, nil
@@ -163,7 +163,7 @@ func getWriter() (error, *os.File, *bufio.Writer) {
 		outputFile = defaultOutput
 	}
 	if path == "" {
-		path = defaultPath
+		path = defaultPath[system]
 	}
 
 	//2.打开输出文件
