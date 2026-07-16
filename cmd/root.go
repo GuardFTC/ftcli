@@ -9,6 +9,7 @@ import (
 	"ftcli/cmd/open"
 	_package "ftcli/cmd/package"
 	"ftcli/cmd/sql"
+	"ftcli/cmd/wmai"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -35,6 +36,7 @@ func Init() {
 	rootCmd.AddCommand(build.NewBuildCommand())
 	rootCmd.AddCommand(open.NewOpenCommand())
 	rootCmd.AddCommand(monitor.NewMonitorCommand())
+	rootCmd.AddCommand(wmai.NewWmaiCommand())
 
 	//3.执行根命令
 	if err := rootCmd.Execute(); err != nil {
