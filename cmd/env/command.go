@@ -106,38 +106,66 @@ func runEnvCommand() {
 	//3.依次执行命令
 	for property, propertyValues := range systemProject {
 
-		//4.判断是否为后台启动模式
-		if propertyValues[0] == "background" {
-
-			//5.解析配置：background, 日志路径, 检测端口, kill进程名, kill关键字, 实际命令...
-			logFile := propertyValues[1]
-			checkPort := propertyValues[2]
-			killName := propertyValues[3]
-			killKeyword := propertyValues[4]
-			actualValues := propertyValues[5:]
-
-			//6.先kill旧进程，确保幂等
-			fmt.Printf(">>> 停止已运行的%v进程...\n", property)
-			util.KillProcess(killName, killKeyword)
-
-			//7.后台启动
-			fmt.Printf(">>> 后台启动%v: %v\n", property, actualValues)
-			if err := util.RunCommandBackground(logFile, checkPort, actualValues[0], actualValues[1:]...); err != nil {
-				fmt.Printf("后台启动失败: %v\n", err)
-				continue
-			}
-		} else {
-
-			//8.前台执行命令
-			fmt.Printf(">>> 执行启动%v命令: %v\n", property, propertyValues)
-			if err := util.RunCommand(propertyValues[0], propertyValues[1:]...); err != nil {
-				fmt.Printf("命令执行失败: %v\n", err)
-				continue
-			}
-			fmt.Printf("启动%v命令执行成功\n\n", property)
+		//4.根据类型执行对应操作
+		switch propertyValues[0] {
+		case "background":
+			runBackgroundService(property, propertyValues)
+		case "docker":
+			runDockerService(property, propertyValues)
 		}
 	}
 
 	//4.所有命令完成的提示
 	fmt.Println("所有命令执行完成！")
+}
+
+// runBackgroundService 后台启动进程服务
+func runBackgroundService(property string, propertyValues []string) {
+
+	//1.解析配置：background, 日志路径, 检测端口, kill进程名, kill关键字, 实际命令...
+	logFile := propertyValues[1]
+	checkPort := propertyValues[2]
+	killName := propertyValues[3]
+	killKeyword := propertyValues[4]
+	actualValues := propertyValues[5:]
+
+	//2.先kill旧进程，确保幂等
+	fmt.Printf(">>> 停止已运行的%v进程...\n", property)
+	util.KillProcess(killName, killKeyword)
+
+	//3.后台启动
+	fmt.Printf(">>> 后台启动%v: %v\n", property, actualValues)
+	if err := util.RunCommandBackground(logFile, checkPort, actualValues[0], actualValues[1:]...); err != nil {
+		fmt.Printf("后台启动失败: %v\n", err)
+	}
+}
+
+// runDockerService 启动docker服务
+func runDockerService(property string, propertyValues []string) {
+
+	//1.解析配置：docker, compose文件路径, 容器名1, 容器名2...
+	composeFile := propertyValues[1]
+	containers := propertyValues[2:]
+
+	//2.如果有compose文件，使用docker compose up -d启动
+	if composeFile != "" {
+		fmt.Printf(">>> 启动docker compose服务: %v\n", property)
+		if err := util.RunCommand("docker", "compose", "-f", composeFile, "up", "-d"); err != nil {
+			fmt.Printf("docker compose启动失败: %v\n", err)
+		} else {
+			fmt.Printf("docker compose服务 %v 启动成功\n\n", property)
+		}
+		return
+	}
+
+	//3.无compose文件，逐个启动容器
+	fmt.Printf(">>> 启动docker容器: %v\n", property)
+	for _, containerName := range containers {
+		if err := util.RunCommand("docker", "start", containerName); err != nil {
+			fmt.Printf("启动容器[%s]失败: %v\n", containerName, err)
+			continue
+		}
+		fmt.Printf("容器 %s 启动成功\n", containerName)
+	}
+	fmt.Println()
 }

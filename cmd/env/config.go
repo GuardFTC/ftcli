@@ -14,6 +14,10 @@ var system = runtime.GOOS
 var defaultProject = "prospect-platform"
 
 // env命令 系统-项目名称-项目配置-Map
+// 配置格式说明:
+//
+//	background类型: "background", 日志路径, 检测端口, kill进程名, kill关键字, 实际命令...
+//	docker类型: "docker", compose文件路径(单容器为空), 容器名1, 容器名2...
 var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 	windows: {
 		defaultProject: {
@@ -41,17 +45,25 @@ var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 			},
 			"redis": {
 				"docker",
-				"start", "redis-stack",
+				"",
+				"redis-stack",
 			},
 		},
 		"ftcli": {
 			"redis": {
 				"docker",
-				"start", "redis-stack",
+				"",
+				"redis-stack",
 			},
 			"chroma": {
 				"docker",
-				"start", "chroma-server",
+				"",
+				"chroma-server",
+			},
+			"es": {
+				"docker",
+				"C:\\Users\\Administrator\\base\\elastic search\\docker-compose.yml",
+				"es01", "elasticvue",
 			},
 			"ftcli": {
 				"background",
@@ -67,14 +79,11 @@ var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 				"-jar", "C:\\Users\\Administrator\\project\\java\\ftcli-ai-server\\target\\ftcli-ai-server-0.0.1-SNAPSHOT.jar",
 			},
 		},
-		"dolp": {
-			"zookeeper": {
-				"background",
-				"C:\\Users\\Administrator\\project\\java\\logs\\zookeeper.log",
-				"2181",
-				"java", "zookeeper",
-				"cmd",
-				"/C", "C:\\Users\\Administrator\\base\\zookeeper\\apache-zookeeper-3.8.6-bin\\bin\\zkServer.cmd",
+		"logging-mon": {
+			"kafka": {
+				"docker",
+				"C:\\Users\\Administrator\\base\\kafka\\docker-compose.yml",
+				"ui", "kafka", "zookeeper",
 			},
 		},
 	},
@@ -104,17 +113,20 @@ var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 			//},
 			//"redis": {
 			//	"docker",
-			//	"start", "redis-dev",
+			//	"",
+			//	"redis-dev",
 			//},
 		},
 		"ftcli": {
 			//"redis": {
 			//	"docker",
-			//	"start", "redis-dev",
+			//	"",
+			//	"redis-dev",
 			//},
 			//"chroma": {
 			//	"docker",
-			//	"start", "chroma-server",
+			//	"",
+			//	"chroma-server",
 			//},
 			"ftcli": {
 				"background",

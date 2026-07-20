@@ -4,6 +4,7 @@ package env
 import (
 	"bufio"
 	"fmt"
+	"ftcli/util"
 	"io"
 	"os"
 	"os/signal"
@@ -21,30 +22,66 @@ func runBgLog(serviceName string) {
 		return
 	}
 
-	//2.查找服务对应的日志文件
-	logFile := findServiceLogFile(serviceName)
-	if logFile == "" {
+	//2.查找服务配置
+	serviceType, propertyValues := findServiceConfig(serviceName)
+
+	//3.根据类型查看日志
+	switch serviceType {
+	case "background":
+		tailBackgroundLog(propertyValues)
+	case "docker":
+		tailDockerServiceLog(serviceName, propertyValues)
+	case "docker-container":
+		util.TailDockerLog(serviceName)
+	default:
 		fmt.Printf("未找到服务[%s]的日志配置，可选服务:\n", serviceName)
 		printAvailableServices()
-		return
 	}
+}
 
-	//3.滚动输出日志
+// tailBackgroundLog 滚动查看后台进程的日志文件
+func tailBackgroundLog(propertyValues []string) {
+
+	//1.获取日志文件路径
+	logFile := propertyValues[1]
+
+	//2.滚动输出日志
 	tailLog(logFile)
 }
 
-// printAvailableServices 打印可选的后台服务名
+// tailDockerServiceLog 查看docker服务日志（如果有多个容器，查看第一个）
+func tailDockerServiceLog(serviceName string, propertyValues []string) {
+
+	//1.解析容器列表
+	containers := propertyValues[2:]
+
+	//2.如果只有一个容器，直接查看
+	if len(containers) == 1 {
+		util.TailDockerLog(containers[0])
+		return
+	}
+
+	//3.多个容器时，提示用户选择
+	fmt.Printf("服务[%s]包含多个容器，请指定容器名:\n", serviceName)
+	for _, c := range containers {
+		fmt.Printf("  * %s\n", c)
+	}
+	fmt.Println()
+	fmt.Println("用法: ftcli env --bl <容器名>")
+}
+
+// printAvailableServices 打印可选的服务名
 func printAvailableServices() {
 
 	//1.获取当前系统对应的项目集合
 	systemProjects := envCmdProjectPropertiesMap[system]
 	if systemProjects == nil {
-		fmt.Println("当前系统无后台服务配置")
+		fmt.Println("当前系统无服务配置")
 		return
 	}
 
 	//2.打印提示
-	fmt.Println("可选的后台服务:")
+	fmt.Println("可选的服务:")
 
 	//3.遍历所有项目
 	for projectName, projectProperties := range systemProjects {
@@ -52,43 +89,20 @@ func printAvailableServices() {
 		//4.遍历项目配置
 		for serviceName, propertyValues := range projectProperties {
 
-			//5.只处理后台服务
-			if propertyValues[0] != "background" {
-				continue
+			//5.根据类型打印
+			switch propertyValues[0] {
+			case "background":
+				fmt.Printf("  * %s [background] (项目: %s)\n", serviceName, projectName)
+			case "docker":
+				containers := propertyValues[2:]
+				fmt.Printf("  * %s [docker: %s] (项目: %s)\n", serviceName, strings.Join(containers, ","), projectName)
 			}
-
-			//6.打印
-			fmt.Printf("  * %s (项目: %s)\n", serviceName, projectName)
 		}
 	}
 
-	//7.打印用法提示
+	//6.打印用法提示
 	fmt.Println()
-	fmt.Println("用法: ftcli env --bl <服务名>")
-}
-
-// findServiceLogFile 根据服务名查找日志文件路径
-func findServiceLogFile(serviceName string) string {
-
-	//1.获取当前系统对应的项目集合
-	systemProjects := envCmdProjectPropertiesMap[system]
-	if systemProjects == nil {
-		return ""
-	}
-
-	//2.遍历所有项目查找匹配的服务
-	for _, projectProperties := range systemProjects {
-		for name, propertyValues := range projectProperties {
-
-			//3.只处理后台服务且名称匹配
-			if propertyValues[0] == "background" && name == serviceName {
-				return propertyValues[1]
-			}
-		}
-	}
-
-	//3.未找到返回空
-	return ""
+	fmt.Println("用法: ftcli env --bl <服务名或容器名>")
 }
 
 // tailLog 滚动输出日志文件（类似 tail -f，先输出最后100行）
