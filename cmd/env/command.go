@@ -14,11 +14,12 @@ import (
 
 // flag变量
 var (
-	envProject     string
-	envListProject bool
-	envListBg      bool
-	envBgLog       string
-	envBgKill      string
+	envProject        string
+	envListProject    bool
+	envListBg         bool
+	envBgLog          string
+	envBgLogContainer string
+	envBgKill         string
 )
 
 // NewEnvCommand 创建env命令
@@ -29,6 +30,7 @@ func NewEnvCommand() *cobra.Command {
 	envCmd.Flags().BoolVarP(&envListProject, "list project", "l", false, "输出内置项目信息")
 	envCmd.Flags().BoolVarP(&envListBg, "background", "b", false, "查看所有后台运行进程")
 	envCmd.Flags().StringVar(&envBgLog, "bl", "", "滚动查看后台服务日志(指定服务名,用-b查看可选服务)")
+	envCmd.Flags().StringVar(&envBgLogContainer, "blc", "", "滚动查看docker容器日志(指定容器名,绕过服务名匹配)")
 	envCmd.Flags().StringVar(&envBgKill, "bk", "", "停止后台服务(指定服务名,用-b查看可选服务)")
 
 	//2.返回
@@ -47,6 +49,8 @@ var envCmd = &cobra.Command{
 			consoleEnvProjectInfos()
 		case envListBg:
 			runListBgServices()
+		case envBgLogContainer != "":
+			runBgLogContainer(envBgLogContainer)
 		case envBgLog != "":
 			runBgLog(envBgLog)
 		case envBgKill != "":

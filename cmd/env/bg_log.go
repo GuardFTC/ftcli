@@ -64,10 +64,21 @@ func tailDockerServiceLog(serviceName string, propertyValues []string) {
 	//3.多个容器时，提示用户选择
 	fmt.Printf("服务[%s]包含多个容器，请指定容器名:\n", serviceName)
 	for _, c := range containers {
-		fmt.Printf("  * %s\n", c)
+		if c == serviceName {
+			fmt.Printf("  * %s (与服务名同名，请用: ftcli env --blc %s)\n", c, c)
+		} else {
+			fmt.Printf("  * %s\n", c)
+		}
 	}
 	fmt.Println()
 	fmt.Println("用法: ftcli env --bl <容器名>")
+}
+
+// runBgLogContainer 强制按容器名查看docker容器日志
+// 用于服务名与容器名冲突的场景（如kafka服务包含kafka容器）：
+// --bl会优先匹配服务名导致走到列容器分支，此时用--blc绕过服务名匹配直接tail容器
+func runBgLogContainer(containerName string) {
+	util.TailDockerLog(containerName)
 }
 
 // printAvailableServices 打印可选的服务名
