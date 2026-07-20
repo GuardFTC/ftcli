@@ -3,10 +3,11 @@ package env
 
 import (
 	"fmt"
-	"ftcli/util"
 	"os"
 	"strings"
 	"text/tabwriter"
+
+	"ftcli/util"
 )
 
 // runListBgServices 查看所有后台运行进程状态
@@ -24,7 +25,7 @@ func runListBgServices() {
 
 	//3.打印表头
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "| 项目\t| 服务名\t| 类型\t| 容器/端口\t| 状态\t| 日志路径\t")
+	fmt.Fprintln(w, "| 项目 \t| 服务名   \t| 类型      \t| 容器/端口\t| 状态  \t| 日志路径\t")
 	fmt.Fprintln(w, "--------------------------------------------------------------------------------")
 
 	//4.遍历所有项目
@@ -64,7 +65,7 @@ func printBackgroundService(w *tabwriter.Writer, projectName string, serviceName
 	}
 
 	//3.打印
-	fmt.Fprintf(w, "| %s\t| %s\t| background\t| %s\t| %s\t| %s\t\n",
+	fmt.Fprintf(w, "| %s\t| %s\t| background\t| %s     \t| %s\t| %s\t\n",
 		projectName, serviceName, checkPort, status, logFile)
 }
 
@@ -84,7 +85,7 @@ func printDockerService(w *tabwriter.Writer, projectName string, serviceName str
 		}
 
 		//4.打印
-		fmt.Fprintf(w, "| %s\t| %s(%s)\t| docker\t| %s\t| %s\t| -\t\n",
+		fmt.Fprintf(w, "| %s\t| %s(%s)\t| docker\t| %s     \t| %s\t| -\t\n",
 			projectName, serviceName, containerName, strings.Join(containers, ","), status)
 	}
 }

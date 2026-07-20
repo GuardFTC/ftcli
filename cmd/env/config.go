@@ -62,7 +62,7 @@ var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 			},
 			"es": {
 				"docker",
-				"C:\\Users\\Administrator\\base\\elastic search\\docker-compose.yml",
+				"C:\\Users\\Administrator\\base\\elastic search\\docker-compose.yaml",
 				"es01", "elasticvue",
 			},
 			"ftcli": {
@@ -83,7 +83,7 @@ var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 			"kafka": {
 				"docker",
 				"C:\\Users\\Administrator\\base\\kafka\\docker-compose.yml",
-				"ui", "kafka", "zookeeper",
+				"kafka-ui", "kafka", "zookeeper",
 			},
 		},
 	},
