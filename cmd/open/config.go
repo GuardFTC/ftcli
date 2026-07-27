@@ -58,7 +58,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"goland": {
 			Command: "C:\\Program Files\\JetBrains\\GoLand 2025.2.2\\bin\\goland64.exe",
 			Args:    []string{},
-			Always:  true,
+			Always:  false,
 		},
 		"webstorm": {
 			Command: "C:\\Program Files\\JetBrains\\WebStorm 2025.2.2\\bin\\webstorm64.exe",
@@ -103,7 +103,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"virtual": {
 			Command: "C:\\Program Files\\Oracle\\VirtualBox\\VirtualBox.exe",
 			Args:    []string{},
-			Always:  false,
+			Always:  true,
 		},
 		"RDM": {
 			Command: "C:\\Program Files\\Tiny Craft\\Tiny RDM\\tinyrdm.exe",
