@@ -291,4 +291,8 @@ var tableColumnMap = map[string][]string{
 		"lost_inter_6_20", "lost_reward_6_20", "ecpm_low", "ecpm_medium", "ecpm_high", "ecpm_null",
 		"ecpm_higher",
 	},
+	"dws_bi_allrevenue_d_i": {
+		"day_time", "living_day", "platform", "media_source", "campaign", "country_code",
+		"ad_type", "placement", "position", "revenue", "num",
+	},
 }
