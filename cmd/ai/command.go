@@ -13,6 +13,7 @@ var (
 	toolsWeb  bool
 	docsWeb   bool
 	skillsWeb bool
+	mcpWeb    bool
 	baseURL   string
 )
 
@@ -26,6 +27,7 @@ func NewAiCommand() *cobra.Command {
 	aiCmd.Flags().BoolVarP(&toolsWeb, "tools", "t", false, "打开AI工具管理页面")
 	aiCmd.Flags().BoolVarP(&docsWeb, "docs", "f", false, "打开AI文档管理页面")
 	aiCmd.Flags().BoolVarP(&skillsWeb, "skills", "s", false, "打开AI技能管理页面")
+	aiCmd.Flags().BoolVarP(&mcpWeb, "mcp", "m", false, "打开AI MCP管理页面")
 	aiCmd.Flags().StringVarP(&baseURL, "server", "S", defaultBaseURL, "后端服务地址")
 
 	//2.返回
@@ -52,6 +54,8 @@ var aiCmd = &cobra.Command{
 			runToolsWeb()
 		case skillsWeb:
 			runSkillsWeb()
+		case mcpWeb:
+			runMcpWeb()
 		default:
 			cmd.Help()
 		}
