@@ -13,8 +13,9 @@ ftcli/
 │   ├── monitor/         # 系统资源监控（内存/CPU）
 │   ├── open/            # 常用软件启动
 │   ├── package/         # Java Maven 打包
-│   └── sql/             # CSV → SQL 转换
-└── util/                # 公共工具（命令执行、进程管理、浏览器打开等）
+│   ├── sql/             # CSV → SQL 转换
+│   └── wmai/            # 完美 AI API Key 用量统计
+└── util/                # 公共工具（命令执行、进程管理、Docker、浏览器打开等）
 ```
 
 ## 环境要求
@@ -22,7 +23,7 @@ ftcli/
 - Go 1.24+
 - Maven 3.x（Java 打包/构建需要）
 - Docker（部分环境服务依赖容器）
-- Windows 为主要支持平台，macOS 有预留配置结构
+- Windows + macOS 双平台支持，各命令配置按 `runtime.GOOS` 自动区分
 
 ## 安装与构建
 
@@ -48,6 +49,7 @@ ftcli build -p ftcli -t go
 | `ftcli ai` | AI 助手（流式聊天 / 文档上传 / 管理页面） |
 | `ftcli open` | 一键打开常用开发软件 |
 | `ftcli monitor` | 系统资源监控（内存/CPU） |
+| `ftcli wmai` | 完美 AI API Key 用量统计 |
 
 ---
 
@@ -60,16 +62,28 @@ ftcli env                  # 启动默认项目（prospect-platform）
 ftcli env -p ftcli         # 启动 ftcli 项目环境
 ftcli env -l               # 列出内置项目及配置
 ftcli env -b               # 查看所有后台服务运行状态
-ftcli env --bl ftcli       # 滚动查看指定服务日志
+ftcli env --bl ftcli       # 滚动查看指定服务日志（支持服务名或容器名）
+ftcli env --blc chroma     # 强制按容器名查看 docker 日志（绕过服务名匹配）
 ftcli env --bk ftcli       # 停止指定后台服务
 ```
+
+> `--bl` 按服务名匹配日志：background 类型查看日志文件，docker 类型查看容器日志。当服务名与容器名冲突时（如 kafka 服务包含 kafka 容器），用 `--blc` 直接按容器名查看。
 
 **内置项目（Windows）**
 
 | 项目 | 启动服务 |
 |------|----------|
 | `prospect-platform` | Nacos (8848)、Sentinel (8849)、Redis (Docker) |
-| `ftcli` | Redis (Docker)、Chroma (Docker)、ftcli 后端 (6680) |
+| `ftcli` | Redis (Docker)、Chroma (Docker)、ES + ElasticVue (Docker Compose)、ftcli 后端 (6680) |
+| `logging-mon` | Kafka + Kafka UI + Zookeeper (Docker Compose) |
+
+**内置项目（macOS）**
+
+| 项目 | 启动服务 |
+|------|----------|
+| `prospect-platform` | （配置已预留，服务待启用） |
+| `ftcli` | ftcli 后端 (6680) |
+| `dolp` | Zookeeper (2181) |
 
 ---
 
@@ -87,7 +101,9 @@ ftcli package -l           # 列出内置项目
 ftcli package -P <pom路径> -m <settings路径> -o <输出目录>
 ```
 
-**内置项目（Windows）**：`prospect-platform`、`logging-mon`、`ftcli`
+**内置项目（Windows + macOS 双平台）**：`prospect-platform`、`logging-mon`、`ftcli`
+
+打包流程：kill 相关 Java 进程 → 依次执行 `mvn clean`、`mvn install`、`mvn package`（均带 `-DskipTests=true`）→ 打开输出目录（Windows 用 `explorer`，macOS 用 `open`）
 
 ---
 
@@ -105,10 +121,12 @@ ftcli build -l             # 列出内置项目及支持类型
 
 **构建流程**
 
-- **Java**：kill 进程 → Maven 打包 → 后台启动（端口存活检测）
-- **Go**：编译到临时文件；Windows 下通过 bat 脚本等当前进程退出后延迟替换 exe
+- **Java**：kill 进程 → Maven 打包（clean → install → package）→ 后台启动（端口存活检测，超时 15 秒）
+- **Go**：
+  - Windows：编译到临时文件 `ftcli_new.exe`，生成 `ftcli_replace.bat` 脚本，当前进程退出后延迟自动替换目标 exe
+  - macOS/Unix：直接 `go build` 覆盖目标文件
 
-**内置项目（Windows）**：`ftcli`（支持 java / go / all）
+**内置项目**：`ftcli`（支持 java / go / all，Windows + macOS 双平台）
 
 ---
 
@@ -125,12 +143,12 @@ ftcli sql -p <目录> -c file.csv        # 指定 CSV 所在目录
 
 **默认配置**
 
-| 配置 | 值 |
-|------|-----|
-| CSV 目录 | `C:\Users\Administrator\Downloads\` |
-| 数据库 | `dw_tile` |
-| 表 | `ads_bi_af_ltvroas_d_i` |
-| 输出 | `output.sql` |
+| 配置 | Windows | macOS |
+|------|---------|-------|
+| CSV 目录 | `C:\Users\Administrator\Downloads\` | `/Users/m/Downloads/` |
+| 数据库 | `dw_tile` | `dw_tile` |
+| 表 | `ads_bi_af_ltvroas_d_i` | `ads_bi_af_ltvroas_d_i` |
+| 输出 | `output.sql` | `output.sql` |
 
 内置 30+ 张 BI 数据仓库表结构（LTV、留存、素材、付费、A/B 测试、活跃、流失等），完整列表见 `cmd/sql/config.go`。
 
@@ -169,8 +187,15 @@ ftcli open goland webstorm
 
 | 默认启动 | 软件 |
 |----------|------|
-| ✓ | edge、v2ray、docker、wechat、idea、datagrip、kiro、apipost、yuque、typora、sublime |
-| ✗ | chrome、goland、webstorm、cursor、we、virtual、RDM、draw.io |
+| ✓ | edge、v2ray、docker、wechat、idea、goland、datagrip、kiro、yuque、typora、sublime |
+| ✗ | chrome、we、webstorm、cursor、apipost、virtual、RDM、draw.io |
+
+**内置软件（macOS）**
+
+| 默认启动 | 软件 |
+|----------|------|
+| ✓ | v2ray、ishot、kh、edge、wechat、we、idea、datagrip、kiro、yuque、typora、sublime |
+| ✗ | goland、webstorm、arm、apipost、docker、draw.io、tabby |
 
 ---
 
@@ -203,6 +228,44 @@ Core 04:   0.00% | Core 09:   0.00% | Core 14:   1.04% | Core 19:  12.44%
 
 ---
 
+## ftcli wmai
+
+查询完美 AI（Wanmei AI）API Key 的今日用量统计，包括消费金额、请求次数、Token 用量，带进度条可视化额度消耗。
+
+```bash
+ftcli wmai -s                   # 查询今日用量（读取环境变量 WM_AI_KEY）
+ftcli wmai -s -k <API Key>      # 指定 API Key 查询
+```
+
+**配置**
+
+| 配置项 | 值 |
+|--------|------|
+| API 地址 | `https://api.ai.wanmei.net` |
+| 环境变量 | `WM_AI_KEY` |
+| 每日额度上限 | $20.00 |
+| 时区 | 北京时间（CST, UTC+8） |
+
+**输出示例**
+
+```
+================================================================================
+完美 AI 使用额度
+================================================================================
+密钥 (Key)   :  sk-xxxxxx
+时间范围     :  2026-07-28 00:00:00 ~ 2026-07-28 16:30:00 (今日)
+--------------------------------------------------------------------------------
+消费金额     :  $3.142000 / $20.00  [████░░░░░░░░░░░░░░░░░░░░]  15.71%
+请求次数     :  42
+--------------------------------------------------------------------------------
+输入 (Prompt):  1,234 tokens
+输出 (Comp.) :  567 tokens
+总计 (Total) :  1,801 tokens
+================================================================================
+```
+
+---
+
 ## 配置说明
 
 各子命令的配置集中在对应 `config.go` 中，按 `runtime.GOOS` 区分系统。修改路径、端口、进程关键字等直接编辑即可，无需改业务逻辑。
@@ -215,6 +278,28 @@ Core 04:   0.00% | Core 09:   0.00% | Core 14:   1.04% | Core 19:  12.44%
 | sql | `cmd/sql/config.go` |
 | ai | `cmd/ai/config.go` |
 | open | `cmd/open/config.go` |
+| wmai | `cmd/wmai/config.go` |
+
+---
+
+## 工具层（util）
+
+公共工具函数位于 `util/` 目录，供各子命令复用：
+
+| 文件 | 函数 | 说明 |
+|------|------|------|
+| `cmd.go` | `RunCommand` / `RunCommandInDir` | 前台执行命令，输出实时打印到控制台 |
+| | `RunCommandBackground` | 后台启动进程，日志输出到文件，端口存活检测（超时 15 秒） |
+| | `RunCommandBackgroundNoCheck` | 后台启动进程，不做存活检测（用于启动 GUI 软件） |
+| | `ensureUTF8Console` | Windows 下设置 UTF-8 代码页（chcp 65001），解决中文乱码 |
+| `normal.go` | `KillProcess` / `IsProcessRunning` | 按进程名 + 命令行关键字 kill/检查进程 |
+| | `OpenBrowser` | 跨平台用默认浏览器打开 URL |
+| | `IsNumeric` / `GetProjectItems` | 数据类型判断、项目配置项读取 |
+| `docker.go` | `IsDockerContainerRunning` / `StopDockerContainer` | Docker 容器状态检查/停止 |
+| | `StopDockerCompose` | 停止整个 Docker Compose 组 |
+| | `TailDockerLog` | 滚动查看容器日志（`docker logs -f`，Ctrl+C 退出） |
+| `proc_windows.go` | `setDetachAttrs` | Windows：创建新进程组（`CREATE_NEW_PROCESS_GROUP`），子进程脱离父终端 |
+| `proc_unix.go` | `setDetachAttrs` | Unix：创建新会话（`Setsid`），子进程脱离父终端 |
 
 ---
 
