@@ -43,7 +43,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"wechat": {
 			Command: "C:\\Program Files\\Tencent\\Weixin\\Weixin.exe",
 			Args:    []string{},
-			Always:  true,
+			Always:  false,
 		},
 		"we": {
 			Command: "cmd",
@@ -73,7 +73,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"kiro": {
 			Command: "powershell",
 			Args:    []string{"-Command", "Start-Process 'kiro'"},
-			Always:  true,
+			Always:  false,
 		},
 		"cursor": {
 			Command: "cursor",
@@ -88,7 +88,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"yuque": {
 			Command: "powershell",
 			Args:    []string{"-Command", "Start-Process 'C:\\Users\\Administrator\\AppData\\Local\\Programs\\yuque-desktop\\语雀.exe'"},
-			Always:  true,
+			Always:  false,
 		},
 		"typora": {
 			Command: "powershell",
