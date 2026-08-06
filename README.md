@@ -1,6 +1,6 @@
 # ftcli
 
-个人开发 CLI 工具，用于自动化日常开发工作流：环境启动、项目构建、Maven 打包、CSV 转 SQL、AI 助手、常用软件一键打开。
+个人开发 CLI 工具，用于自动化日常开发工作流：环境启动、项目构建、Maven 打包、CSV 导入 Doris、AI 助手、常用软件一键打开。
 
 ```
 ftcli/
@@ -13,7 +13,7 @@ ftcli/
 │   ├── monitor/         # 系统资源监控（内存/CPU）
 │   ├── open/            # 常用软件启动
 │   ├── package/         # Java Maven 打包
-│   ├── sql/             # CSV → SQL 转换
+│   ├── sql/             # CSV → Doris Stream Load 导入
 │   └── wmai/            # 完美 AI API Key 用量统计
 └── util/                # 公共工具（命令执行、进程管理、Docker、浏览器打开等）
 ```
@@ -45,7 +45,7 @@ ftcli build -p ftcli -t go
 | `ftcli env` | 启动项目开发环境 |
 | `ftcli package` | Java Maven 打包 |
 | `ftcli build` | 完整构建流水线：kill → 打包 → 后台启动 |
-| `ftcli sql` | CSV 数据转换为 INSERT SQL |
+| `ftcli sql` | CSV 数据通过 Stream Load 导入 Doris |
 | `ftcli ai` | AI 助手（流式聊天 / 文档上传 / 管理页面） |
 | `ftcli open` | 一键打开常用开发软件 |
 | `ftcli monitor` | 系统资源监控（内存/CPU） |
@@ -132,25 +132,46 @@ ftcli build -l             # 列出内置项目及支持类型
 
 ## ftcli sql
 
-读取 CSV 文件，按内置表结构生成 `INSERT INTO` 语句。自动处理数字/字符串类型识别及空值。
+调用 Doris Stream Load 服务接口，将本地 CSV 文件高效导入到 Doris 指定库表中。支持千万级数据量，导入过程流式处理，无 OOM 风险。
 
 ```bash
-ftcli sql -c data.csv                  # 使用默认库表转换
-ftcli sql -c data.csv -t <表名> -d <数据库> -o output.sql
-ftcli sql -l                           # 列出所有内置表
-ftcli sql -p <目录> -c file.csv        # 指定 CSV 所在目录
+ftcli sql -c data.csv -d dw_tile -t ads_bi_af_ltvroas_d_i
+ftcli sql -c data.csv -d dw_tile -t ads_bi_af_ltvroas_d_i -p /data/csv/
 ```
 
-**默认配置**
+**参数说明**
 
-| 配置 | Windows | macOS |
-|------|---------|-------|
-| CSV 目录 | `C:\Users\Administrator\Downloads\` | `/Users/m/Downloads/` |
-| 数据库 | `dw_tile` | `dw_tile` |
-| 表 | `ads_bi_af_ltvroas_d_i` | `ads_bi_af_ltvroas_d_i` |
-| 输出 | `output.sql` | `output.sql` |
+| 参数 | 说明 |
+|------|------|
+| `-c` | CSV 文件名（必填） |
+| `-d` | 目标数据库（必填） |
+| `-t` | 目标表（必填） |
+| `-p` | CSV 文件所在目录（可选，默认为系统 Downloads 目录） |
 
-内置 30+ 张 BI 数据仓库表结构（LTV、留存、素材、付费、A/B 测试、活跃、流失等），完整列表见 `cmd/sql/config.go`。
+**默认 CSV 目录**
+
+| 系统 | 路径 |
+|------|------|
+| Windows | `C:\Users\Administrator\Downloads\` |
+| macOS | `/Users/m/Downloads/` |
+
+**依赖服务**：需要 `ftcli-doris-stream-loader` 服务运行在 `localhost:6677`（HTTP 超时 10 分钟）。
+
+**输出示例**
+
+```
+开始导入 | 文件: /Users/m/Downloads/data.csv | 目标: dw_tile.ads_bi_af_ltvroas_d_i
+正在导入中，请耐心等待...
+================================================================================
+导入成功!
+--------------------------------------------------------------------------------
+  总行数:     4999960
+  加载行数:   4950000
+  过滤行数:   49960
+  批次数:     100
+  耗时:       32846ms (32.8s)
+================================================================================
+```
 
 ---
 
