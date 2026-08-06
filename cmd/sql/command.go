@@ -172,6 +172,7 @@ func printResult(result *importResponse) {
 	fmt.Printf("  总行数:     %d\n", result.TotalRows)
 	fmt.Printf("  加载行数:   %d\n", result.LoadedRows)
 	fmt.Printf("  过滤行数:   %d\n", result.FilteredRows)
+	fmt.Printf("  不合规行数: %d\n", result.UnselectedRows)
 	fmt.Printf("  批次数:     %d\n", result.BatchCount)
 	fmt.Printf("  耗时:       %dms (%.1fs)\n", result.CostTimeMs, float64(result.CostTimeMs)/1000)
 	fmt.Println("================================================================================")
