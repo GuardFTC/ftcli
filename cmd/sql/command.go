@@ -2,26 +2,42 @@
 package sql
 
 import (
-	"bufio"
-	"encoding/csv"
-	"errors"
+	"bytes"
+	"encoding/json"
 	"fmt"
-	"ftcli/util"
+	"net/http"
 	"os"
-	"strings"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 )
 
+// importRequest 导入请求参数
+type importRequest struct {
+	FilePath        string `json:"filePath"`
+	Database        string `json:"database"`
+	Table           string `json:"table"`
+	ColumnSeparator string `json:"columnSeparator"`
+	SkipHeader      bool   `json:"skipHeader"`
+}
+
+// importResponse 导入响应结果
+type importResponse struct {
+	Success        bool   `json:"success"`
+	TotalRows      int64  `json:"totalRows"`
+	LoadedRows     int64  `json:"loadedRows"`
+	FilteredRows   int64  `json:"filteredRows"`
+	UnselectedRows int64  `json:"unselectedRows"`
+	CostTimeMs     int64  `json:"costTimeMs"`
+	BatchCount     int    `json:"batchCount"`
+	ErrorMessage   string `json:"errorMessage"`
+}
+
 // flag变量
 var (
-	csvFile    string
-	outputFile string
-	db         string
-	table      string
-	listTable  bool
-	path       string
+	csvFile string
+	db      string
+	table   string
+	path    string
 )
 
 // NewSqlCommand 创建sql命令
@@ -29,242 +45,134 @@ func NewSqlCommand() *cobra.Command {
 
 	//1.设置Flags
 	sqlCmd.Flags().StringVarP(&csvFile, "csvFile", "c", "", "CSV文件名")
-	sqlCmd.Flags().StringVarP(&outputFile, "outputFile", "o", "", "输出文件名")
 	sqlCmd.Flags().StringVarP(&db, "db", "d", "", "数据库")
 	sqlCmd.Flags().StringVarP(&table, "table", "t", "", "表")
-	sqlCmd.Flags().BoolVarP(&listTable, "list table", "l", false, "输出内置表信息")
 	sqlCmd.Flags().StringVarP(&path, "path", "p", "", "默认文件路径")
 
 	//2.返回
 	return sqlCmd
 }
 
-// sql命令 将csv数据转换成sql
+// sql命令 将csv数据通过Stream Load导入Doris
 var sqlCmd = &cobra.Command{
 	Use:   "sql",
-	Short: "transform data from csv to sql",
+	Short: "import csv data to doris via stream load",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		//1.如果打印表信息，则打印并返回，否则执行SQL命令
-		if listTable {
-			consoleTables()
-			return
-		} else {
-			runCommand()
-		}
+		runCommand()
 	},
 }
 
-// 打印表信息
-func consoleTables() {
-
-	//1.打印分割线
-	fmt.Println("--------------------------------------------------------------------------------")
-
-	//2.打印表头
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "| 表名                  \t| 列名 \t|")
-	fmt.Fprintln(w, "--------------------------------------------------------------------------------")
-
-	//3.打印项目信息
-	for tableName, columns := range tableColumnMap {
-		fmt.Fprintf(w, "| %-18s\t|%-18s\t|\n", tableName, strings.Join(columns, ", "))
-		fmt.Fprintln(w, "--------------------------------------------------------------------------------")
-	}
-
-	//4.写入控制台
-	w.Flush()
-}
-
-// 运行命令
+// 运行导入命令
 func runCommand() {
 
-	//1.获取读取器
-	err, reader, sourceFile := getReader()
-	defer sourceFile.Close()
-	if err != nil {
-		fmt.Printf("获取 CSV 读取器失败:%s", err)
+	//1.校验CSV文件参数
+	if csvFile == "" {
+		fmt.Println("错误: 请通过 -c 指定CSV文件名")
 		return
 	}
 
-	//2.获取写入器
-	err, sqlFile, writer := getWriter()
-	defer sqlFile.Close()
-	defer writer.Flush()
-	if err != nil {
-		fmt.Printf("获取 SQL 写入器失败:%s", err)
+	//2.拼装CSV文件绝对路径
+	if path == "" {
+		path = defaultPath[system]
+	}
+	filePath := path + csvFile
+
+	//3.校验文件是否存在
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Printf("错误: 文件不存在 %s\n", filePath)
 		return
 	}
 
-	//3.读取表头（跳过）
-	_, err = reader.Read()
-	if err != nil {
-		fmt.Printf("读取 CSV 表头失败:%s", err)
-		return
-	}
-
-	//4.如果数据库或表为空，则使用默认库表
+	//4.校验数据库和表参数
 	if db == "" {
-		db = defaultDB
+		fmt.Println("错误: 请通过 -d 指定目标数据库")
+		return
 	}
 	if table == "" {
-		table = defaultTable
-	}
-
-	//5.如果根据表无法获取表字段，则返回
-	columns, exist := tableColumnMap[table]
-	if !exist {
-		fmt.Printf("无法获取表字段，请检查表名:%s", table)
+		fmt.Println("错误: 请通过 -t 指定目标表")
 		return
 	}
 
-	//5.循环读取每行数据,写入到输出文件中
-	line := writeDataToOutputFile(reader, writer, columns, table)
-
-	//6.打印完成信息
-	fmt.Printf("SQL 生成完成，共处理 %d 行数据\n", line-2)
-}
-
-// 获取CSV读取器
-func getReader() (error, *csv.Reader, *os.File) {
-
-	//1.如果CSV文件为空，则返回错误
-	if csvFile == "" {
-		return errors.New("请指定CSV文件"), nil, nil
-	}
-	if path == "" {
-		path = defaultPath[system]
+	//5.构建请求体
+	reqBody := importRequest{
+		FilePath:        filePath,
+		Database:        db,
+		Table:           table,
+		ColumnSeparator: ",",
+		SkipHeader:      true,
 	}
 
-	//2.打开 CSV 文件
-	fmt.Printf("CSV文件路径: %s\n", defaultPath[system]+csvFile)
-	file, err := os.Open(defaultPath[system] + csvFile)
+	//6.调用Stream Load接口
+	fmt.Printf("开始导入 | 文件: %s | 目标: %s.%s\n", filePath, db, table)
+	result, err := callStreamLoadAPI(reqBody)
 	if err != nil {
-		fmt.Printf("打开 CSV 文件失败:%s", err)
-		return err, nil, nil
+		fmt.Printf("接口调用失败: %s\n", err)
+		return
 	}
 
-	//3.创建 CSV 读取器
-	reader := csv.NewReader(file)
-
-	//4.设置读取参数
-	reader.LazyQuotes = true
-	reader.TrimLeadingSpace = true
-
-	//5.返回
-	return nil, reader, file
+	//7.打印导入结果
+	printResult(result)
 }
 
-// 获取SQL写入器
-func getWriter() (error, *os.File, *bufio.Writer) {
+// 调用Stream Load导入接口
+func callStreamLoadAPI(reqBody importRequest) (*importResponse, error) {
 
-	//1.如果输出文件路径为空，则使用默认输出文件路径
-	if outputFile == "" {
-		outputFile = defaultOutput
-	}
-	if path == "" {
-		path = defaultPath[system]
-	}
-
-	//2.打开输出文件
-	fmt.Printf("输出文件路径: %s\n", path+outputFile)
-	sqlFile, err := os.Create(path + outputFile)
+	//1.序列化请求体为JSON
+	jsonData, err := json.Marshal(reqBody)
 	if err != nil {
-		fmt.Printf("创建输出文件失败:%s", err)
-		return err, nil, nil
+		return nil, fmt.Errorf("序列化请求体失败: %w", err)
 	}
 
-	//3.创建writer
-	writer := bufio.NewWriter(sqlFile)
+	//2.创建HTTP客户端（超时时间10分钟，适配海量数据导入场景）
+	client := &http.Client{Timeout: httpTimeout}
 
-	//4.返回
-	return nil, sqlFile, writer
+	//3.构建POST请求
+	req, err := http.NewRequest(http.MethodPost, streamLoadURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("创建请求失败: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	//4.发送请求
+	fmt.Println("正在导入中，请耐心等待...")
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("请求发送失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	//5.校验HTTP状态码
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("接口返回异常状态码: %d", resp.StatusCode)
+	}
+
+	//6.解析响应体
+	var result importResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("解析响应失败: %w", err)
+	}
+
+	//7.返回
+	return &result, nil
 }
 
-// 写入数据到输出文件中
-func writeDataToOutputFile(reader *csv.Reader, writer *bufio.Writer, columns []string, table string) int {
+// 打印导入结果
+func printResult(result *importResponse) {
 
-	//1.定义初始读取行数为第2行
-	line := 2
+	fmt.Println("================================================================================")
 
-	//2.循环读取excel
-	for {
-
-		//3.读取数据
-		row, err := reader.Read()
-		if err != nil {
-
-			//4.如果读取完毕，退出循环
-			if err.Error() == "EOF" {
-				break
-			}
-
-			//5.如果是其他异常，则打印并继续
-			fmt.Printf("读取第 %d 行失败: %v", line, err)
-			line++
-			continue
-		}
-
-		//6.如果数据列数不足，则打印并跳过
-		if len(row) < len(columns) {
-			fmt.Printf("警告: 第 %d 行数据列数不足（%d < %d），跳过\n", line, len(row), len(columns))
-			line++
-			continue
-		}
-
-		//7.处理数据列
-		values := parseRow(columns, row)
-
-		//8.解析SQL
-		sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);\n",
-			table,
-			strings.Join(columns, ", "),
-			strings.Join(values, ", "),
-		)
-
-		//9.写入文件
-		_, err = writer.WriteString(sql)
-		if err != nil {
-			fmt.Printf("写入 SQL 失败: %v", err)
-		}
-
-		//10.line++
-		line++
+	if result.Success {
+		fmt.Println("导入成功!")
+	} else {
+		fmt.Println("导入失败!")
+		fmt.Printf("  错误信息: %s\n", result.ErrorMessage)
 	}
 
-	//11.返回行数
-	return line
-}
-
-// 处理数据列
-func parseRow(columns []string, row []string) []string {
-
-	//1.定义列值切片
-	values := make([]string, len(columns))
-
-	//2.处理数据列
-	for j, cellValue := range row[:len(columns)] {
-
-		//3.读取列值
-		cellValue = strings.TrimSpace(cellValue)
-
-		//4.空值处理
-		if cellValue == "" {
-			values[j] = "NULL"
-			continue
-		}
-
-		//5.根据不同类型，进行转换并存入切片
-		//数字类型:直接存储
-		//字符串:转义单引号 + 加引号
-		if util.IsNumeric(cellValue) {
-			values[j] = cellValue
-		} else {
-			cellValue = strings.ReplaceAll(cellValue, "'", "''")
-			values[j] = "'" + cellValue + "'"
-		}
-	}
-
-	//6.返回列值切片
-	return values
+	fmt.Println("--------------------------------------------------------------------------------")
+	fmt.Printf("  总行数:     %d\n", result.TotalRows)
+	fmt.Printf("  加载行数:   %d\n", result.LoadedRows)
+	fmt.Printf("  过滤行数:   %d\n", result.FilteredRows)
+	fmt.Printf("  批次数:     %d\n", result.BatchCount)
+	fmt.Printf("  耗时:       %dms (%.1fs)\n", result.CostTimeMs, float64(result.CostTimeMs)/1000)
+	fmt.Println("================================================================================")
 }
