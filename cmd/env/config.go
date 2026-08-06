@@ -86,6 +86,19 @@ var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 				"kafka-ui", "kafka", "zookeeper",
 			},
 		},
+		"ftc-loader": {
+			"ftc-loader": {
+				"background",
+				"C:\\Users\\Administrator\\project\\java\\logs\\ftcli-doris-stream-loader.log",
+				"6677",
+				"java", "ftcli-doris-stream-loader",
+				"java",
+				"-Dfile.encoding=UTF-8",
+				"-Dstdout.encoding=UTF-8",
+				"-Dstderr.encoding=UTF-8",
+				"-jar", "C:\\Users\\Administrator\\project\\java\\ftcli-doris-stream-loader\\target\\ftcli-doris-stream-loader-0.0.1-SNAPSHOT.jar",
+			},
+		},
 	},
 	mac: {
 		defaultProject: {
@@ -149,6 +162,19 @@ var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 				"bash",
 				"/Applications/base/zookeeper/apache-zookeeper-3.8.6-bin/bin/zkServer.sh",
 				"start",
+			},
+		},
+		"ftc-loader": {
+			"ftc-loader": {
+				"background",
+				"/Applications/project/java/logs/ftcli-doris-stream-loader.log",
+				"6677",
+				"java", "ftcli-doris-stream-loader",
+				"java",
+				"-Dfile.encoding=UTF-8",
+				"-Dstdout.encoding=UTF-8",
+				"-Dstderr.encoding=UTF-8",
+				"-jar", "/Applications/project/java/ftcli-doris-stream-loader/target/ftcli-doris-stream-loader-0.0.1-SNAPSHOT.jar",
 			},
 		},
 	},

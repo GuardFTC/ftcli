@@ -42,6 +42,20 @@ var buildCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 			"go-source": {"C:\\Users\\Administrator\\project\\go\\src\\ftcli"},
 			"go-output": {"..\\..\\bin\\ftcli.exe"},
 		},
+		"ftc-loader": {
+			"java-kill":  {"java", "ftcli-doris-stream-loader"},
+			"java-pom":   {"C:\\Users\\Administrator\\project\\java\\ftcli-doris-stream-loader\\pom.xml"},
+			"java-maven": {"C:\\Users\\Administrator\\maven\\apache-maven-3.9.9-bin\\apache-maven-3.9.9\\conf\\settings.xml"},
+			"java-log":   {"C:\\Users\\Administrator\\project\\java\\logs\\ftcli-doris-stream-loader.log"},
+			"java-port":  {"6677"},
+			"java-start": {
+				"java",
+				"-Dfile.encoding=UTF-8",
+				"-Dstdout.encoding=UTF-8",
+				"-Dstderr.encoding=UTF-8",
+				"-jar", "C:\\Users\\Administrator\\project\\java\\ftcli-doris-stream-loader\\target\\ftcli-doris-stream-loader-0.0.1-SNAPSHOT.jar",
+			},
+		},
 	},
 	mac: {
 		"ftcli": {
@@ -59,6 +73,20 @@ var buildCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 			},
 			"go-source": {"/Applications/project/go/src/ftcli"},
 			"go-output": {"../../bin/ftcli"},
+		},
+		"ftc-loader": {
+			"java-kill":  {"java", "ftcli-doris-stream-loader"},
+			"java-pom":   {"/Applications/project/java/ftcli-doris-stream-loader/pom.xml"},
+			"java-maven": {"/Applications/base/maven/apache-maven-3.9.16/conf/settings.xml"},
+			"java-log":   {"/Applications/project/java/logs/ftcli-doris-stream-loader.log"},
+			"java-port":  {"6677"},
+			"java-start": {
+				"java",
+				"-Dfile.encoding=UTF-8",
+				"-Dstdout.encoding=UTF-8",
+				"-Dstderr.encoding=UTF-8",
+				"-jar", "/Applications/project/java/ftcli-doris-stream-loader/target/ftcli-doris-stream-loader-0.0.1-SNAPSHOT.jar",
+			},
 		},
 	},
 }

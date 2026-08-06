@@ -34,6 +34,12 @@ var packageCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 			"output": {"explorer", "C:\\Users\\Administrator\\project\\java\\ftcli-ai-server\\target"},
 			"kill":   {"java", "ftcli-ai-server"},
 		},
+		"ftc-loader": {
+			"pom":    {"C:\\Users\\Administrator\\project\\java\\ftcli-doris-stream-loader\\pom.xml"},
+			"maven":  {"C:\\Users\\Administrator\\maven\\apache-maven-3.9.9-bin\\apache-maven-3.9.9\\conf\\settings.xml"},
+			"output": {"explorer", "C:\\Users\\Administrator\\project\\java\\ftcli-doris-stream-loader\\target"},
+			"kill":   {"java", "ftcli-doris-stream-loader"},
+		},
 	},
 	mac: {
 		defaultProject: {
@@ -53,6 +59,12 @@ var packageCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 			"maven":  {"/Applications/base/maven/apache-maven-3.9.16/conf/settings.xml"},
 			"output": {"open", "/Applications/project/java/ftcli-ai-server/target"},
 			"kill":   {"java", "ftcli-ai-server"},
+		},
+		"ftc-loader": {
+			"pom":    {"/Applications/project/java/ftcli-doris-stream-loader/pom.xml"},
+			"maven":  {"/Applications/base/maven/apache-maven-3.9.16/conf/settings.xml"},
+			"output": {"open", "/Applications/project/java/ftcli-doris-stream-loader/target"},
+			"kill":   {"java", "ftcli-doris-stream-loader"},
 		},
 	},
 }
