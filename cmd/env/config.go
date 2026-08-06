@@ -153,17 +153,17 @@ var envCmdProjectPropertiesMap = map[string]map[string]map[string][]string{
 				"-jar", "/Applications/project/java/ftcli-ai-server/target/ftcli-ai-server-0.0.1-SNAPSHOT.jar",
 			},
 		},
-		"dolp": {
-			"zookeeper": {
-				"background",
-				"/Applications/project/java/logs/zookeeper.log",
-				"2181",
-				"java", "zookeeper",
-				"bash",
-				"/Applications/base/zookeeper/apache-zookeeper-3.8.6-bin/bin/zkServer.sh",
-				"start",
-			},
-		},
+		//"dolp": {
+		//	"zookeeper": {
+		//		"background",
+		//		"/Applications/project/java/logs/zookeeper.log",
+		//		"2181",
+		//		"java", "zookeeper",
+		//		"bash",
+		//		"/Applications/base/zookeeper/apache-zookeeper-3.8.6-bin/bin/zkServer.sh",
+		//		"start",
+		//	},
+		//},
 		"ftc-loader": {
 			"ftc-loader": {
 				"background",
