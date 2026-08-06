@@ -76,14 +76,14 @@ ftcli env --bk ftcli       # 停止指定后台服务
 | `prospect-platform` | Nacos (8848)、Sentinel (8849)、Redis (Docker) |
 | `ftcli` | Redis (Docker)、Chroma (Docker)、ES + ElasticVue (Docker Compose)、ftcli 后端 (6680) |
 | `logging-mon` | Kafka + Kafka UI + Zookeeper (Docker Compose) |
+| `ftc-loader` | ftcli-doris-stream-loader (6677) |
 
 **内置项目（macOS）**
 
 | 项目 | 启动服务 |
 |------|----------|
-| `prospect-platform` | （配置已预留，服务待启用） |
 | `ftcli` | ftcli 后端 (6680) |
-| `dolp` | Zookeeper (2181) |
+| `ftc-loader` | ftcli-doris-stream-loader (6677) |
 
 ---
 
@@ -101,7 +101,7 @@ ftcli package -l           # 列出内置项目
 ftcli package -P <pom路径> -m <settings路径> -o <输出目录>
 ```
 
-**内置项目（Windows + macOS 双平台）**：`prospect-platform`、`logging-mon`、`ftcli`
+**内置项目（Windows + macOS 双平台）**：`prospect-platform`、`logging-mon`、`ftcli`、`ftc-loader`
 
 打包流程：kill 相关 Java 进程 → 依次执行 `mvn clean`、`mvn install`、`mvn package`（均带 `-DskipTests=true`）→ 打开输出目录（Windows 用 `explorer`，macOS 用 `open`）
 
@@ -126,7 +126,7 @@ ftcli build -l             # 列出内置项目及支持类型
   - Windows：编译到临时文件 `ftcli_new.exe`，生成 `ftcli_replace.bat` 脚本，当前进程退出后延迟自动替换目标 exe
   - macOS/Unix：直接 `go build` 覆盖目标文件
 
-**内置项目**：`ftcli`（支持 java / go / all，Windows + macOS 双平台）
+**内置项目**：`ftcli`（支持 java / go / all，Windows + macOS 双平台）、`ftc-loader`（仅 java）
 
 ---
 
