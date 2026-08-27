@@ -5,13 +5,13 @@ go 1.24.0
 toolchain go1.24.4
 
 require (
+	github.com/chzyer/readline v1.5.1
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/shirou/gopsutil/v4 v4.26.5
 	github.com/spf13/cobra v1.9.1
 )
 
 require (
-	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
