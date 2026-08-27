@@ -2,15 +2,18 @@
 package ai
 
 import (
-	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/signal"
 	"runtime"
 	"strings"
 	"syscall"
+
+	"github.com/chzyer/readline"
 )
 
 // ChatPayload 聊天请求体
@@ -36,44 +39,59 @@ func runChat(isLocal bool) {
 		return
 	}
 
-	//3.打印进入提示
-	fmt.Println("===================================================================")
-	fmt.Printf(">> 进入 %s 聊天模式 (输入 'exit' 或 按 Ctrl+C 退出) <<\n", modeName)
-	fmt.Println("===================================================================")
-	fmt.Println()
+	//3.初始化readline实例(支持方向键翻历史、行编辑)
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt:          "[User] > ",
+		InterruptPrompt: "^C",
+		EOFPrompt:       "exit",
+	})
+	if err != nil {
+		fmt.Printf("初始化readline失败: %v\n", err)
+		return
+	}
+	defer rl.Close()
 
 	//4.监听Ctrl+C信号
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	//5.创建输入扫描器
-	scanner := bufio.NewScanner(os.Stdin)
+	//5.打印进入提示
+	fmt.Println("===================================================================")
+	fmt.Printf(">> 进入 %s 聊天模式 (输入 'exit' 或 按 Ctrl+C 退出) <<\n", modeName)
+	fmt.Println("===================================================================")
+	fmt.Println()
 
 	//6.聊天循环
 	for {
 
-		//7.打印用户输入提示
-		fmt.Print("[User] > ")
-
-		//8.监听输入或退出信号
+		//7.监听输入或退出信号
 		inputChan := make(chan string, 1)
+		errChan := make(chan error, 1)
 		go func() {
-			if scanner.Scan() {
-				inputChan <- scanner.Text()
+			line, err := rl.Readline()
+			if err != nil {
+				errChan <- err
 			} else {
-				inputChan <- "exit"
+				inputChan <- line
 			}
 		}()
 
-		//9.等待输入或信号
+		//8.等待输入或信号
 		var input string
 		select {
 		case <-sigChan:
 			input = "exit"
+		case err := <-errChan:
+			if errors.Is(err, readline.ErrInterrupt) || err == io.EOF {
+				input = "exit"
+			} else {
+				fmt.Printf("\n读取输入失败: %v\n", err)
+				return
+			}
 		case input = <-inputChan:
 		}
 
-		//10.处理退出
+		//9.处理退出
 		input = strings.TrimSpace(input)
 		if input == "exit" || input == "quit" {
 			fmt.Println()
@@ -83,12 +101,12 @@ func runChat(isLocal bool) {
 			return
 		}
 
-		//11.空输入跳过
+		//10.空输入跳过
 		if input == "" {
 			continue
 		}
 
-		//12.清屏命令
+		//11.清屏命令
 		if input == "clear" {
 			clearScreen()
 			fmt.Println("===================================================================")
