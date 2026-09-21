@@ -186,6 +186,7 @@ ftcli ai -u <路径>         # 上传文档到知识库
 ftcli ai -f                # 浏览器打开文档管理页面
 ftcli ai -t                # 浏览器打开工具管理页面
 ftcli ai -s                # 浏览器打开技能管理页面
+ftcli ai -m                # 浏览器打开MCP管理页面
 ftcli ai -S <地址>         # 指定后端地址（默认 localhost:6680）
 ```
 
