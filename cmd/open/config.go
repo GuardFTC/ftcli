@@ -103,7 +103,7 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"virtual": {
 			Command: "C:\\Program Files\\Oracle\\VirtualBox\\VirtualBox.exe",
 			Args:    []string{},
-			Always:  true,
+			Always:  false,
 		},
 		"RDM": {
 			Command: "C:\\Program Files\\Tiny Craft\\Tiny RDM\\tinyrdm.exe",
@@ -175,6 +175,11 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 		"kiro": {
 			Command: "open",
 			Args:    []string{"-a", "kiro"},
+			Always:  false,
+		},
+		"trae": {
+			Command: "open",
+			Args:    []string{"-a", "Trae"},
 			Always:  true,
 		},
 		"apipost": {
