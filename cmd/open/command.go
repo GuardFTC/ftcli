@@ -3,11 +3,12 @@ package open
 
 import (
 	"fmt"
-	"ftcli/util"
 	"log"
 	"os"
 	"strings"
 	"text/tabwriter"
+
+	"ftcli/util"
 
 	"github.com/spf13/cobra"
 )
@@ -69,7 +70,7 @@ func runListApps() {
 		if config.Always {
 			alwaysFlag = "true"
 		}
-		fmt.Fprintf(w, "| %s\t| %s\t   |\n", name, alwaysFlag)
+		fmt.Fprintf(w, "| %s\t   | %s\t   |\n", name, alwaysFlag)
 	}
 
 	//5.写入控制台
