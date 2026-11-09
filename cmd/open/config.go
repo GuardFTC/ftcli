@@ -115,6 +115,11 @@ var openCmdAppsMap = map[string]map[string]AppConfig{
 			Args:    []string{},
 			Always:  false,
 		},
+		"feishu": {
+			Command: "C:\\Users\\Administrator\\AppData\\Local\\Feishu\\Feishu.exe",
+			Args:    []string{},
+			Always:  true,
+		},
 	},
 	mac: {
 		"v2ray": {
